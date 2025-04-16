@@ -9,13 +9,13 @@ import (
 )
 
 
-func GetUserById(userId string) (models.User, error) {
+func GetUserById(userId int) (models.User, error) {
 
 	var user models.User
 	query := `
-		SELECT id, phoneNumber FROM users WHERE id = ?
+		SELECT id, phoneNumber, loyaltyId FROM users WHERE id = ?
 	`
-	err := database.DB.QueryRow(query, userId).Scan(&user.ID, &user.PhoneNumber)
+	err := database.DB.QueryRow(query, userId).Scan(&user.ID, &user.PhoneNumber, &user.LoyaltyID)
 
 	if (err == sql.ErrNoRows){
 		return user,  fmt.Errorf("user not found")

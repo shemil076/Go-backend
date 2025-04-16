@@ -55,7 +55,7 @@ func CheckAuth(c *gin.Context){
 		return
 	}
 
-	userID, ok := claims["id"].(string)
+	userID, ok := claims["id"].(int)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H {"error" : "token expired"})
 		c.Abort()
