@@ -29,6 +29,7 @@ func createTable(){
 	query := `CREATE TABLE IF NOT EXISTS users(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 			phoneNumber TEXT UNIQUE,
+			loyaltyId TEXT UNIQUE,
 			password TEXT
 	);`
 

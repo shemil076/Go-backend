@@ -32,6 +32,7 @@ func CreateUserHandler(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{
 		"id": user.ID,
 		"phoneNumber": user.PhoneNumber,
+		"loyaltyId" : user.LoyaltyID,
 	});
 }
 
