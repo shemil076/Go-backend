@@ -11,5 +11,8 @@ func SetupRoutes(router *gin.Engine){
 		api.POST("/signup", handlers.CreateUserHandler)
 		api.POST("/login", handlers.LoginHandler)
 		api.POST("/earn", handlers.EarnPoints)
+		api.POST("/redeem", handlers.RedeemLoyaltyReward)
+		api.POST("/balance", handlers.GetBalance)
+		api.POST("/history", handlers.GetTransactions)
 	}
 }
