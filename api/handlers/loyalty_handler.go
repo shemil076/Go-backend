@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,7 @@ import (
 
 func EarnPoints(c *gin.Context){
 	var loyaltyInputs struct {
-		ID int `json:"id" binding:"required"`
+		ID string `json:"id" binding:"required"`
 		AmountInCents int64 `json:"AmountInCents" binding:"required"`
 	}
 
@@ -22,25 +23,28 @@ func EarnPoints(c *gin.Context){
 
 	resp, err := services.GetUserById(loyaltyInputs.ID)
 
+	fmt.Printf("Error occured while fetching %w", err)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = services.EarnPoints(resp.LoyaltyID, loyaltyInputs.AmountInCents)
+	points, err := services.EarnPoints(resp.LoyaltyID, loyaltyInputs.AmountInCents)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message":"successfully earned points"})
+	c.JSON(http.StatusOK, gin.H{
+		"points": points,
+	})
 }
 
 func RedeemLoyaltyReward(c *gin.Context){
 	var loyaltyInputs struct {
-		ID int `json:"id" binding:"required"`
-		AmountInCents int64 `json:"AmountInCents" binding:"required"`
+		ID string `json:"id" binding:"required"`
+		AmountInCents int64 `json:"amountInCents" binding:"required"`
 	}
 
 	if err := c.ShouldBind(&loyaltyInputs); err != nil {
@@ -48,6 +52,7 @@ func RedeemLoyaltyReward(c *gin.Context){
 		return
 	}
 
+	fmt.Printf("user id", loyaltyInputs.ID)
 	resp, err := services.GetUserById(loyaltyInputs.ID)
 
 	if err != nil {
@@ -58,26 +63,26 @@ func RedeemLoyaltyReward(c *gin.Context){
 	finalAmount ,err := services.RedeemReward(resp.LoyaltyID, loyaltyInputs.AmountInCents)
 
 	if err != nil {
+		fmt.Print("error occured in here")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	fmt.Printf("amount %v", finalAmount)
 	c.JSON(http.StatusOK, gin.H{
 		"finalAmount": finalAmount,
 	})
 }
 
 func GetBalance(c *gin.Context){
-	var loyaltyInputs struct {
-		ID int `json:"id" binding:"required"`
-	}
+	id := c.Query("id")
 
-	if err := c.ShouldBind(&loyaltyInputs); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing ID"})
 		return
 	}
 
-	resp, err := services.GetUserById(loyaltyInputs.ID)
+	resp, err := services.GetUserById(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -98,16 +103,14 @@ func GetBalance(c *gin.Context){
 
 
 func GetTransactions(c *gin.Context){
-	var loyaltyInputs struct {
-		ID int `json:"id" binding:"required"`
-	}
+	id := c.Query("id")
 
-	if err := c.ShouldBind(&loyaltyInputs); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing ID"})
 		return
 	}
 
-	resp, err := services.GetUserById(loyaltyInputs.ID)
+	resp, err := services.GetUserById(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

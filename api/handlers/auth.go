@@ -11,15 +11,14 @@ import (
 )
 
 func CreateUserHandler(c *gin.Context){
-	var cred models.AuthInput
+	var cred models.CreateUserInput
 
 	if err := c.ShouldBindJSON(&cred); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
-	user, err := services.CreateUser(cred.PhoneNumber, cred.Password, database.DB)
-
+	user, err := services.CreateUser(cred.PhoneNumber, cred.FirstName, cred.LastName ,cred.Password, database.DB)
 	if (err != nil){
 		if (strings.Contains(err.Error(), "user already exists")){
 			c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})

@@ -8,12 +8,12 @@ import (
 
 var DB *sql.DB
 
-func InitDB(dsnURI string){
+func InitDB(dsnURI string) {
 	var err error
 
-	DB, err = sql.Open("sqlite",dsnURI)
+	DB, err = sql.Open("sqlite", dsnURI)
 
-	if (err != nil){
+	if err != nil {
 		log.Fatalf("Failed to connect to the database %v\n", err)
 	}
 
@@ -24,18 +24,19 @@ func InitDB(dsnURI string){
 	createTable()
 }
 
-
-func createTable(){
+func createTable() {
 	query := `CREATE TABLE IF NOT EXISTS users(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-			phoneNumber TEXT UNIQUE,
-			loyaltyId TEXT UNIQUE,
-			password TEXT
+		id TEXT PRIMARY KEY ,
+		firstName TEXT,
+		lastName TEXT,
+		phoneNumber TEXT UNIQUE,
+		loyaltyId TEXT UNIQUE,
+		password TEXT
 	);`
 
 	_, err := DB.Exec(query)
 
-	if (err != nil){
+	if err != nil {
 		log.Fatalf("Failed to create users table %v\n", err)
 	}
 }

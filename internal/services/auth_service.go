@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"github.com/shemil076/loyalty-backend/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -30,10 +31,12 @@ func checkUserExists(phoneNumber string, DB *sql.DB) (bool, error) {
 	return true, nil
 }
 
-func CreateUser (phoneNumber string, password string, DB *sql.DB) (models.User, error){
+func CreateUser (phoneNumber string, firstName string, lastName string, password string, DB *sql.DB) (models.User, error){
 	var newUser models.User
+
+	id := uuid.NewString();
 	query := `
-		INSERT INTO users (phoneNumber, password, loyaltyId) VALUES (?, ?, ?)
+		INSERT INTO users (id, phoneNumber, firstName, lastName, password, loyaltyId) VALUES (?, ?, ?, ?, ?, ?)
 	`
 	userExists, err := checkUserExists(phoneNumber, DB)
 
@@ -57,20 +60,21 @@ func CreateUser (phoneNumber string, password string, DB *sql.DB) (models.User, 
 		return newUser, fmt.Errorf("error occurred while creating loyalty account: %v", loyaltyError)
 	}
 
-	res, err := DB.Exec(query, phoneNumber, passwordHash, loyaltyId)
+	_, err = DB.Exec(query, id, phoneNumber, firstName, lastName, passwordHash, loyaltyId)
 
 	if (err != nil){
         return newUser, fmt.Errorf("error occurred while creating the user: %v", err)
 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-        return newUser, fmt.Errorf("error getting last insert ID: %v", err)
-    }
-	newUser.ID = int(id)
+	// if err != nil {
+    //     return newUser, fmt.Errorf("error getting last insert ID: %v", err)
+    // }
+	newUser.ID = id
 	newUser.Password = string(passwordHash)
 	newUser.PhoneNumber = phoneNumber
 	newUser.LoyaltyID = loyaltyId
+	newUser.FirstName = firstName
+	newUser.LastName = lastName
 
 	return newUser, nil
 } 
@@ -80,11 +84,11 @@ func Login(phoneNumber string, password string, DB *sql.DB) (string, error) {
 	var token string 
 
 	query := `
-		SELECT id, phoneNumber, password, loyaltyId FROM users WHERE phoneNumber = ?
+		SELECT id, phoneNumber, password, firstName, lastName, loyaltyId FROM users WHERE phoneNumber = ?
 	`
 
 
-	err := DB.QueryRow(query, phoneNumber).Scan(&user.ID, &user.PhoneNumber, &user.Password, &user.LoyaltyID)
+	err := DB.QueryRow(query, phoneNumber).Scan(&user.ID, &user.PhoneNumber, &user.Password, &user.FirstName, &user.LastName, &user.LoyaltyID)
 
 	if (err == sql.ErrNoRows){
 		return "", fmt.Errorf("invalid credentials")

@@ -72,16 +72,16 @@ func calculatePoints(loyaltyId string, totalAmountInCent int64, programID string
 	return *resp.Points, nil
 }
 
-func EarnPoints(loyaltyId string, totalAmountInCent int64) error {
+func EarnPoints(loyaltyId string, totalAmountInCent int64) (int, error) {
 	programID, locationID := os.Getenv("PROGRAMID"), os.Getenv("DEFAULT_LOCATIONID")
 	if programID == "" || locationID == "" {
-		return fmt.Errorf("environment variable are not set")
+		return 0,fmt.Errorf("environment variable are not set")
 	}
 
 	resp, err := calculatePoints(locationID, totalAmountInCent, programID)
 
 	if err != nil {
-		return fmt.Errorf("error occurred while calculating points %w", err)
+		return 0,fmt.Errorf("error occurred while calculating points %w", err)
 	}
 
 	_, err = squareclient.NewClient.Loyalty.Accounts.AccumulatePoints(
@@ -97,12 +97,17 @@ func EarnPoints(loyaltyId string, totalAmountInCent int64) error {
 			},
 		},
 	)
-
-	return err
+	if err != nil {
+		return 0,fmt.Errorf("error occurred while accumulating points %w", err)
+	}
+	return resp, nil
 }
 
 
 func createLoyaltyReward(loyaltyId string, rewardTierId string)(string, error){
+
+	fmt.Printf("\n reward id is, %v",loyaltyId)
+	fmt.Printf("\n reward id is, %v",rewardTierId)
 	resp, err := squareclient.NewClient.Loyalty.Rewards.Create(
 		context.TODO(),
 		&loyalty.CreateLoyaltyRewardRequest{
@@ -115,6 +120,7 @@ func createLoyaltyReward(loyaltyId string, rewardTierId string)(string, error){
 	)
 
 	if err != nil {
+		fmt.Print("\n Error occured when creating theloyalty reward")
 		return "", fmt.Errorf("error occurred while creating reward %w", err)
 	}
 
@@ -128,9 +134,10 @@ func RedeemReward(loyaltyId string, totalAmountInCent int64) (float64, error) {
 		return 0, fmt.Errorf("environment variable are not set")
 	}
 
-	rewardID, err := createLoyaltyReward(locationID, rewardTierId);
+	rewardID, err := createLoyaltyReward(loyaltyId, rewardTierId);
 
 	if err != nil {
+		fmt.Print("reward creation failed")
 		return 0, fmt.Errorf("reward creation failed: %w",err)
 	}
 
@@ -228,34 +235,42 @@ func formatEvents(events []*square.LoyaltyEvent) []models.Transaction {
 
 		switch event.Type {
 		case "ACCUMULATE_POINTS":
+			t.Title = "ACCUMULATE_POINTS"
 			t.Description = "Points are added to a loyalty account for a purchase that qualified for points based on an accrual rule."
 			t.Points = int64(*event.AccumulatePoints.Points)
 
 		case "CREATE_REWARD":
+			t.Title = "CREATE_REWARD"
 			t.Description = "A loyalty reward is created."
 			t.Points = int64(event.CreateReward.Points)
 
 		case "REDEEM_REWARD":
+			t.Title = "REDEEM_REWARD"
 			t.Description = "A loyalty reward is redeemed."
 			// t.Points = int64(event.re)
 		
 		case "DELETE_REWARD":
+			t.Title = "DELETE_REWARD"
 			t.Description = "A loyalty reward is deleted."
 			t.Points = int64(event.DeleteReward.Points)
 
 		case "ADJUST_POINTS":
+			t.Title = "ADJUST_POINTS"
 			t.Description = "Loyalty points are manually adjusted."
 			// t.Points = int64(event.)
 
 		case "EXPIRE_POINTS":
+			t.Title = "EXPIRE_POINTS"
 			t.Description = "Loyalty points are expired according to the expiration policy of the loyalty program."
 			t.Points = int64(event.ExpirePoints.Points)
 
 		case "OTHER":
+			t.Title = "OTHER"
 			t.Description = "Some other loyalty event occurred."
 			t.Points = int64(event.OtherEvent.Points)
 
 		case "ACCUMULATE_PROMOTION_POINTS":
+			t.Title = "ACCUMULATE_POINTS"
 			t.Description = "Points are added to a loyalty account for a purchase that qualified for a loyalty promotion."
 			t.Points = int64(event.AccumulatePromotionPoints.Points)
 		}
@@ -274,6 +289,8 @@ func ReturnTransactions(loyaltyId string) ([]models.Transaction, error) {
 	}
 
 	transactions := formatEvents(events)
+
+	fmt.Printf("transactions => %v",transactions)
 
 	if transactions == nil {
 		return nil, fmt.Errorf("error occurred while formatting the events")
