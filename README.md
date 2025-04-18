@@ -4,8 +4,11 @@ Square Loyalty API Backend
 Setup Instructions
 
 <p>Clone the Repository:</p>
-<p>git clone https://github.com/shemil076/Go-backend.git</p>
+<p>git clone https://github.com/shemil076/Go-backend.git
+
 cd loyalty-backend
+</p>
+
 
 
 <p>Install Dependencies:</p>
