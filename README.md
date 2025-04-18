@@ -1,3 +1,5 @@
+# Go-backend
+
 Square Loyalty API Backend
 Setup Instructions
 
@@ -8,11 +10,6 @@ cd loyalty-backend
 
 Install Dependencies:
 go mod tidy
-
-
-Set Up SQLite (Optional): If using SQLite, initialize the database:
-sqlite3 users.db < schema.sql
-
 
 
 How to Run the Application
