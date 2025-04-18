@@ -8,7 +8,7 @@ Setup Instructions
 
 # git clone https://github.com/shemil076/Go-backend.git
 
-# cd loyalty-backend
+# cd Go-backend
 </p>
 
 
